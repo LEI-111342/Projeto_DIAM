@@ -1,0 +1,21 @@
+# ========================
+# REGRAS BACKEND (PYTHON)
+# ========================
+.venv/
+__pycache__/
+*.pyc
+*.sqlite3-journal
+
+# ========================
+# REGRAS FRONTEND (REACT)
+# ========================
+node_modules/
+dist/
+.env
+.env.local
+
+# ========================
+# REGRAS DE SISTEMA
+# ========================
+.DS_Store
+Thumbs.db
