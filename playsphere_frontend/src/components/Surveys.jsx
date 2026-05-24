@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Card, CardBody, CardTitle, CardText, Button, Form, FormGroup, Input, Spinner, Badge, Row, Col } from 'reactstrap';
+import { Card, CardBody, CardTitle, CardText, Button, Form, Row, Col, Spinner, Badge, Input } from 'reactstrap';
 import { useUserContext } from './UserProvider';
 
 const Surveys = () => {
@@ -23,23 +23,9 @@ const Surveys = () => {
 
     const handleCriarInquerito = (e) => {
         e.preventDefault();
-        console.log("A enviar para o servidor:", { titulo: novoTitulo, descricao: novaDescricao });
-
-        axios.post('http://localhost:8000/core/api/surveys/',
-            { titulo: novoTitulo, descricao: novaDescricao },
-            { headers: { 'X-CSRFToken': getCSRFToken() }, withCredentials: true }
-        )
-        .then(res => {
-            console.log("Sucesso do servidor:", res.data);
-            alert("✅ Inquérito criado com sucesso!");
-            setNovoTitulo('');
-            setNovaDescricao('');
-            carregarInqueritos();
-        })
-        .catch(err => {
-            console.error("Erro do servidor:", err.response);
-            alert("❌ Erro ao criar: " + JSON.stringify(err.response?.data));
-        });
+        axios.post('http://localhost:8000/core/api/surveys/', { titulo: novoTitulo, descricao: novaDescricao }, { headers: { 'X-CSRFToken': getCSRFToken() }, withCredentials: true })
+        .then(() => { alert("✅ Inquérito criado!"); setNovoTitulo(''); setNovaDescricao(''); carregarInqueritos(); })
+        .catch(() => alert("Erro ao criar o inquérito."));
     };
 
     const handleAdicionarOpcao = (surveyId) => {
@@ -51,7 +37,8 @@ const Surveys = () => {
 
     const handleVotar = (surveyId, optionId) => {
         axios.post(`http://localhost:8000/core/api/surveys/${surveyId}/respond/`, { option: optionId }, { headers: { 'X-CSRFToken': getCSRFToken() }, withCredentials: true })
-        .then(() => carregarInqueritos());
+        .then(() => carregarInqueritos())
+        .catch(() => alert("Erro ao registar o voto."));
     };
 
     const handleArquivar = (surveyId) => {
@@ -60,14 +47,14 @@ const Surveys = () => {
     };
 
     const handleApagarInquerito = (surveyId) => {
-        if(window.confirm("Queres mesmo apagar este inquérito e todos os seus votos?")) {
+        if(window.confirm("Apagar permanentemente este inquérito?")) {
             axios.delete(`http://localhost:8000/core/api/surveys/${surveyId}/`, { headers: { 'X-CSRFToken': getCSRFToken() }, withCredentials: true })
             .then(() => carregarInqueritos());
         }
     };
 
     const handleApagarOpcao = (optionId) => {
-        if(window.confirm("Apagar opção? Os votos associados a ela serão perdidos.")) {
+        if(window.confirm("Remover esta opção de voto?")) {
             axios.delete(`http://localhost:8000/core/api/surveys/options/${optionId}/`, { headers: { 'X-CSRFToken': getCSRFToken() }, withCredentials: true })
             .then(() => carregarInqueritos());
         }
@@ -100,7 +87,7 @@ const Surveys = () => {
                 </Card>
             )}
 
-            {surveys.length === 0 ? <p className="text-muted">Não há inquéritos de momento.</p> : (
+            {surveys.length === 0 ? <p className="text-muted">Não há inquéritos disponíveis.</p> : (
                 <Row>
                     {surveys.map(survey => (
                         <Col md="6" key={survey.id} className="mb-4">
@@ -119,24 +106,26 @@ const Surveys = () => {
                                     <div className="d-grid gap-2 mb-4">
                                         {survey.options && survey.options.length > 0 ? (
                                             survey.options.map(opcao => (
-                                                <div key={opcao.id} className="d-flex gap-2">
+                                                <div key={opcao.id} className="d-flex gap-2 align-items-center">
                                                     <Button
                                                         color={survey.user_voto === opcao.id ? "primary" : "outline-primary"}
-                                                        className="text-start flex-grow-1 d-flex justify-content-between"
+                                                        className="text-start flex-grow-1 d-flex justify-content-between align-items-center"
                                                         onClick={() => handleVotar(survey.id, opcao.id)}
                                                         disabled={userRole !== 'GAMER' || !survey.ativo}
                                                     >
                                                         <span>{opcao.texto} {survey.user_voto === opcao.id && "✅"}</span>
-                                                        {(survey.user_voto || userRole === 'ADMIN') && (
-                                                            <strong>{opcao.votos_count} votos</strong>
+
+                                                        {/* ALTERAÇÃO SOLICITADA: Mostra a contagem se votou, se for admin OU se for anónimo (!userRole) */}
+                                                        {(survey.user_voto || userRole === 'ADMIN' || !userRole) && (
+                                                            <Badge color="dark" pill className="ms-2">{opcao.votos_count} votos</Badge>
                                                         )}
                                                     </Button>
                                                     {userRole === 'ADMIN' && (
-                                                        <Button color="danger" outline onClick={() => handleApagarOpcao(opcao.id)}>X</Button>
+                                                        <Button color="danger" outline size="sm" onClick={() => handleApagarOpcao(opcao.id)}>X</Button>
                                                     )}
                                                 </div>
                                             ))
-                                        ) : <p className="text-muted small fst-italic">A aguardar opções...</p>}
+                                        ) : <p className="text-muted small fst-italic">Sem opções configuradas.</p>}
                                     </div>
 
                                     {userRole === 'ADMIN' && (
@@ -147,7 +136,7 @@ const Surveys = () => {
                                             </div>
                                             <div className="d-flex justify-content-between">
                                                 <Button color="warning" size="sm" onClick={() => handleArquivar(survey.id)}>
-                                                    {survey.ativo ? '📥 Arquivar Inquérito' : '📤 Desarquivar'}
+                                                    {survey.ativo ? '📥 Arquivar' : '📤 Ativar'}
                                                 </Button>
                                                 <Button color="danger" size="sm" onClick={() => handleApagarInquerito(survey.id)}>🗑️ Apagar</Button>
                                             </div>

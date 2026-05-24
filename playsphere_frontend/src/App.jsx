@@ -15,6 +15,8 @@ import Cart from './components/Cart';
 import Forum from './components/Forum';
 import ForumPost from './components/ForumPost';
 import Surveys from './components/Surveys';
+import AdminPublishers from './components/AdminPublishers';
+import AdminPublisherDetail from './components/AdminPublisherDetail'; // <--- NOVO IMPORT
 import { useUserContext } from './components/UserProvider';
 
 function App() {
@@ -39,32 +41,25 @@ function App() {
           <NavbarBrand tag={Link} to="/">🎮 PlaySphere</NavbarBrand>
 
           <Nav className="me-auto" navbar>
-            <NavItem>
-              <NavLink tag={Link} to="/">Catálogo</NavLink>
-            </NavItem>
+            <NavItem><NavLink tag={Link} to="/">Catálogo</NavLink></NavItem>
 
-            {/* Fórum e Inquéritos ocultos para a empresa (Publisher) */}
             {userRole !== 'PUBLISHER' && (
               <>
-                <NavItem>
-                  <NavLink tag={Link} to="/forum">💬 Fórum</NavLink>
-                </NavItem>
-                <NavItem>
-                  <NavLink tag={Link} to="/inqueritos">📊 Inquéritos</NavLink>
-                </NavItem>
+                <NavItem><NavLink tag={Link} to="/forum">💬 Fórum</NavLink></NavItem>
+                <NavItem><NavLink tag={Link} to="/inqueritos">📊 Inquéritos</NavLink></NavItem>
               </>
             )}
 
             {(userRole === 'ADMIN' || userRole === 'PUBLISHER') && (
-              <NavItem>
-                <NavLink tag={Link} to="/adicionar">➕ Novo Jogo</NavLink>
-              </NavItem>
+              <NavItem><NavLink tag={Link} to="/adicionar">➕ Novo Jogo</NavLink></NavItem>
+            )}
+
+            {userRole === 'ADMIN' && (
+                <NavItem><NavLink tag={Link} to="/admin/empresas">🏢 Gestão de Empresas</NavLink></NavItem>
             )}
 
             {userRole === 'GAMER' && user && (
-              <NavItem>
-                <NavLink tag={Link} to="/biblioteca">📚 Minha Biblioteca</NavLink>
-              </NavItem>
+              <NavItem><NavLink tag={Link} to="/biblioteca">📚 Minha Biblioteca</NavLink></NavItem>
             )}
           </Nav>
 
@@ -75,11 +70,7 @@ function App() {
                   <NavItem className="d-flex align-items-center me-4">
                     <Button color="warning" size="sm" tag={Link} to="/carrinho" className="position-relative fw-bold text-dark">
                       🛒 Carrinho
-                      {cart.length > 0 && (
-                          <Badge color="danger" pill className="position-absolute top-0 start-100 translate-middle">
-                              {cart.length}
-                          </Badge>
-                      )}
+                      {cart.length > 0 && <Badge color="danger" pill className="position-absolute top-0 start-100 translate-middle">{cart.length}</Badge>}
                     </Button>
                   </NavItem>
                 )}
@@ -95,12 +86,8 @@ function App() {
               </>
             ) : (
               <>
-                <NavItem className="me-2 d-flex align-items-center">
-                  <Button color="outline-light" size="sm" tag={Link} to="/login">Entrar</Button>
-                </NavItem>
-                <NavItem className="d-flex align-items-center">
-                  <Button color="primary" size="sm" tag={Link} to="/signup">Criar Conta</Button>
-                </NavItem>
+                <NavItem className="me-2 d-flex align-items-center"><Button color="outline-light" size="sm" tag={Link} to="/login">Entrar</Button></NavItem>
+                <NavItem className="d-flex align-items-center"><Button color="primary" size="sm" tag={Link} to="/signup">Criar Conta</Button></NavItem>
               </>
             )}
           </Nav>
@@ -121,6 +108,10 @@ function App() {
           <Route path="/forum" element={<Forum />} />
           <Route path="/forum/:id" element={<ForumPost />} />
           <Route path="/inqueritos" element={<Surveys />} />
+          <Route path="/admin/empresas" element={<AdminPublishers />} />
+
+          {/* NOVA ROTA: Detalhe específico da empresa */}
+          <Route path="/admin/empresas/:id" element={<AdminPublisherDetail />} />
         </Routes>
       </Container>
     </div>
