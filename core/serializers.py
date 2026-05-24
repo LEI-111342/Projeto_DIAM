@@ -11,14 +11,15 @@ class GameImageSerializer(serializers.ModelSerializer):
 
 class GameSerializer(serializers.ModelSerializer):
     publisher_nome = serializers.SerializerMethodField()
+    publisher_username = serializers.ReadOnlyField(source='publisher.username')  # <--- NOVO CAMPO PARA LÓGICA
     numero_reviews = serializers.SerializerMethodField()
     rating_medio = serializers.SerializerMethodField()
     galeria = GameImageSerializer(many=True, read_only=True)
 
     class Meta:
         model = Game
-        fields = ['id', 'titulo', 'descricao', 'genero', 'preco', 'publisher', 'publisher_nome', 'aprovado',
-                  'numero_reviews', 'rating_medio', 'imagem_principal', 'galeria']
+        fields = ['id', 'titulo', 'descricao', 'genero', 'preco', 'publisher', 'publisher_username', 'publisher_nome',
+                  'aprovado', 'numero_reviews', 'rating_medio', 'imagem_principal', 'galeria']
 
     def get_publisher_nome(self, obj):
         if obj.publisher and hasattr(obj.publisher, 'profile') and obj.publisher.profile.nome_empresa:

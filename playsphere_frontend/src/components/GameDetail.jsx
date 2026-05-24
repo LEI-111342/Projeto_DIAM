@@ -8,7 +8,7 @@ import { useUserContext } from './UserProvider';
 const GameDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { hash } = useLocation(); // Lê o final do URL (ex: #eventos)
+    const { hash } = useLocation();
     const { user, userRole, cart, setCart } = useUserContext();
 
     const [game, setGame] = useState(null);
@@ -57,7 +57,6 @@ const GameDetail = () => {
 
     useEffect(() => { carregarDados(); }, [id, userRole]);
 
-    // LÓGICA DE SCROLL AUTOMÁTICO
     useEffect(() => {
         if (hash === '#eventos' && eventos.length > 0) {
             setTimeout(() => {
@@ -118,7 +117,6 @@ const GameDetail = () => {
         axios.post('http://localhost:8000/core/api/library/', { game: id, estado: estadoBiblioteca }, { headers: { 'X-CSRFToken': getCSRFToken() }, withCredentials: true }).then(() => { alert("Adicionado!"); carregarDados(); });
     };
 
-    // NOVA FUNÇÃO: Atualiza logo o estado se o jogo já estiver na biblioteca
     const handleMudarEstadoBiblioteca = (novoEstado) => {
         setEstadoBiblioteca(novoEstado);
         if (meuItemBiblioteca) {
@@ -151,8 +149,9 @@ const GameDetail = () => {
 
     if (!game) return <Spinner color="primary" className="mt-5 d-block mx-auto" />;
 
-    const podeEditar = userRole === 'ADMIN' || (userRole === 'PUBLISHER' && game.publisher_nome === user);
-    const eDonoDoJogo = game.publisher_nome === user || userRole === 'ADMIN';
+    // CORREÇÃO: Usar publisher_username em vez de publisher_nome para verificar permissões
+    const podeEditar = userRole === 'ADMIN' || (userRole === 'PUBLISHER' && game.publisher_username === user);
+    const eDonoDoJogo = game.publisher_username === user || userRole === 'ADMIN';
 
     return (
         <div className="mt-4">

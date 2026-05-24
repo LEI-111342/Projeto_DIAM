@@ -54,14 +54,16 @@ const GameList = () => {
 
     if (loading) return <Spinner color="primary" className="mt-5 d-block mx-auto" />;
 
+    // 1. FILTRAGEM DO CATÁLOGO (Usa o publisher_username para bater certo com a conta)
     let listaProcessada = games.filter(game => {
-        if (userRole === 'PUBLISHER' && game.publisher_nome !== user) return false;
+        if (userRole === 'PUBLISHER' && game.publisher_username !== user) return false;
         if (userRole === 'GAMER' && !game.aprovado) return false;
         if (!user && !game.aprovado) return false;
         if (pesquisa && !game.titulo.toLowerCase().includes(pesquisa.toLowerCase())) return false;
         return true;
     });
 
+    // 2. ORDENAÇÃO DO CATÁLOGO
     listaProcessada.sort((a, b) => {
         if (ordenacao === 'recentes') return b.id - a.id;
         if (ordenacao === 'populares') return b.numero_reviews - a.numero_reviews;
@@ -70,9 +72,15 @@ const GameList = () => {
         return 0;
     });
 
+    // 3. FILTRAGEM DA ABA DE EVENTOS (Oculta eventos da concorrência se for Publisher)
+    let eventosSideBar = upcomingEventsList;
+    if (userRole === 'PUBLISHER') {
+        const meusJogosIds = listaProcessada.map(g => g.id);
+        eventosSideBar = upcomingEventsList.filter(ev => meusJogosIds.includes(ev.game));
+    }
+
     return (
         <div className="mt-4">
-            {/* DASHBOARD DE ADMINISTRAÇÃO TOTAL */}
             {userRole === 'ADMIN' && (pendingEvents.length > 0 || pendingPubs.length > 0) && (
                 <div className="mb-5 p-4 bg-danger bg-opacity-10 border border-danger border-opacity-50 rounded shadow-sm">
                     <h4 className="text-danger fw-bold mb-3">🛠️ Central de Moderação do Administrador</h4>
@@ -154,20 +162,18 @@ const GameList = () => {
                     )}
                 </Col>
 
-                {/* ABA DE EVENTOS UPCOMING GLOBAL SOLICITADA */}
                 <Col lg="3">
                     <Card className="border-0 shadow-sm bg-light">
                         <CardBody className="p-3">
                             <h5 className="fw-bold text-success mb-3">📅 Próximos Eventos</h5>
-                            {upcomingEventsList.length === 0 ? (
+                            {eventosSideBar.length === 0 ? (
                                 <p className="text-muted small fst-italic">Sem eventos agendados.</p>
                             ) : (
                                 <ListGroup flush>
-                                    {upcomingEventsList.map(ev => (
+                                    {eventosSideBar.map(ev => (
                                         <ListGroupItem key={ev.id} className="bg-transparent px-0 py-2 border-bottom">
-                                            <Link to={`/jogo/${ev.game}#eventos`} className="text-decoration-none fw-bold text-dark d-block text-truncate">
-                                                {ev.titulo}
-                                            </Link>                                            <div className="d-flex justify-content-between align-items-center mt-1">
+                                            <Link to={`/jogo/${ev.game}#eventos`} className="text-decoration-none fw-bold text-dark d-block text-truncate">{ev.titulo}</Link>
+                                            <div className="d-flex justify-content-between align-items-center mt-1">
                                                 <Badge color="success" size="sm" className="small">{ev.game_titulo}</Badge>
                                                 <small className="text-muted" style={{ fontSize: '11px' }}>{moment(ev.data_evento).format("DD/MM [às] HH:mm")}</small>
                                             </div>
