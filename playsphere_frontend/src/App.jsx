@@ -14,6 +14,7 @@ import Library from './components/Library';
 import Cart from './components/Cart';
 import Forum from './components/Forum';
 import ForumPost from './components/ForumPost';
+import Surveys from './components/Surveys';
 import { useUserContext } from './components/UserProvider';
 
 function App() {
@@ -42,11 +43,16 @@ function App() {
               <NavLink tag={Link} to="/">Catálogo</NavLink>
             </NavItem>
 
-            {/* FÓRUM APENAS PARA GAMERS E VISITANTES, E ADMINS PARA MODERAR */}
+            {/* Fórum e Inquéritos ocultos para a empresa (Publisher) */}
             {userRole !== 'PUBLISHER' && (
-              <NavItem>
-                <NavLink tag={Link} to="/forum">💬 Fórum</NavLink>
-              </NavItem>
+              <>
+                <NavItem>
+                  <NavLink tag={Link} to="/forum">💬 Fórum</NavLink>
+                </NavItem>
+                <NavItem>
+                  <NavLink tag={Link} to="/inqueritos">📊 Inquéritos</NavLink>
+                </NavItem>
+              </>
             )}
 
             {(userRole === 'ADMIN' || userRole === 'PUBLISHER') && (
@@ -114,6 +120,7 @@ function App() {
           <Route path="/carrinho" element={user ? <Cart /> : <Login />} />
           <Route path="/forum" element={<Forum />} />
           <Route path="/forum/:id" element={<ForumPost />} />
+          <Route path="/inqueritos" element={<Surveys />} />
         </Routes>
       </Container>
     </div>
